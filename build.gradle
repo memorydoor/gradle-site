@@ -1,0 +1,30 @@
+apply plugin:'groovy'
+apply plugin:'idea'
+apply plugin:'maven'
+apply plugin:'code-quality'
+
+
+group = "com.breskeby"
+version = "0.1-SNAPSHOT"
+
+codeNarcConfigFileName = "gradle/config/codenarc.groovy"
+
+repositories{
+	mavenCentral()
+}
+
+dependencies{
+
+    compile "org.apache.maven.doxia:doxia-module-apt:1.4"
+    compile "org.apache.maven.doxia:doxia-module-xhtml:1.4"
+    compile "org.apache.maven.doxia:doxia-module-xdoc:1.4"
+    compile gradleApi()
+    compile localGroovy()
+
+	testCompile 'junit:junit:4.8.2', 'org.spockframework:spock-core:0.5-groovy-1.8@jar'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.8'
+    jarFile = 'gradle/wrapper/gradle-wrapper.jar'
+}

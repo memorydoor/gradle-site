@@ -20,6 +20,11 @@ dependencies{
     compile "org.apache.maven.doxia:doxia-module-apt:1.4"
     compile "org.apache.maven.doxia:doxia-module-xhtml:1.4"
     compile "org.apache.maven.doxia:doxia-module-xdoc:1.4"
+
+    compile "org.apache.maven.wagon:wagon-provider-api:1.0"
+    //compile "org.apache.maven:maven-compat:3.0"
+    compile "org.apache.maven:maven-artifact-manager:2.2.1"
+
     compile gradleApi()
     compile localGroovy()
 

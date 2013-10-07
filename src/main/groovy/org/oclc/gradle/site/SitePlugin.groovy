@@ -15,5 +15,6 @@ class SitePlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.tasks.create("site", SiteTask.class)
+        project.tasks.create("site-deploy", SiteDeployTask.class)
     }
 }

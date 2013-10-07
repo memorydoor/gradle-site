@@ -8,17 +8,13 @@ import org.apache.maven.wagon.authentication.AuthenticationInfo
 import org.apache.maven.wagon.observers.Debug
 import org.apache.maven.wagon.proxy.ProxyInfo
 import org.apache.maven.wagon.repository.Repository
-import org.codehaus.plexus.ContainerConfiguration
-import org.codehaus.plexus.DefaultContainerConfiguration
-import org.codehaus.plexus.DefaultPlexusContainer
-import org.codehaus.plexus.PlexusConstants
-import org.codehaus.plexus.PlexusContainer
+import org.codehaus.plexus.*
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException
 import org.codehaus.plexus.context.Context
 import org.codehaus.plexus.context.ContextException
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable
 import org.codehaus.plexus.util.StringUtils
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.mvn3.org.apache.maven.plugin.MojoExecutionException
@@ -35,7 +31,8 @@ class SiteDeployTask extends DefaultTask {
     @InputDirectory
     File inputDir = getProject().file("out/site")
 
-    private PlexusContainer container;
+    @Input
+    String url = "file:C:/temp";
 
     @TaskAction
     def delopy() {
@@ -43,10 +40,7 @@ class SiteDeployTask extends DefaultTask {
         PlexusContainer container = new DefaultPlexusContainer();
 
         final wagonManager = container.lookup(WagonManager.ROLE)
-        final Repository repository = new Repository("id", "file:C:/temp")
-
-        println "wagonManager" + wagonManager
-
+        final Repository repository = new Repository("id", url)
 
         final Wagon wagon =  getWagon( repository, wagonManager );
         final ProxyInfo proxyInfo

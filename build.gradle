@@ -1,13 +1,11 @@
 apply plugin:'groovy'
 apply plugin:'idea'
 apply plugin:'maven'
-apply plugin:'code-quality'
 
 
-group = "com.breskeby"
+group = "org.oclc.gradle"
 version = "0.1-SNAPSHOT"
 
-codeNarcConfigFileName = "gradle/config/codenarc.groovy"
 
 repositories{
 	mavenCentral()
@@ -22,8 +20,10 @@ dependencies{
     compile "org.apache.maven.doxia:doxia-module-xdoc:1.4"
 
     compile "org.apache.maven.wagon:wagon-provider-api:1.0"
-    //compile "org.apache.maven:maven-compat:3.0"
     compile "org.apache.maven:maven-artifact-manager:2.2.1"
+    compile "org.apache.maven.wagon:wagon-file:1.0"
+
+
 
     compile gradleApi()
     compile localGroovy()
@@ -34,4 +34,17 @@ dependencies{
 task wrapper(type: Wrapper) {
     gradleVersion = '1.8'
     jarFile = 'gradle/wrapper/gradle-wrapper.jar'
+}
+
+jar {
+    def manifestClasspath = configurations.compile.collect { it.getName() }.join(',')
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Site plugin',
+                'Implementation-Version': version,
+                'Built-By': System.getProperty('user.name'),
+                'Built-Date': new Date(),
+                'Built-JDK': System.getProperty('java.version'),
+                'Built-Gradle': gradle.gradleVersion,
+                "Class-Path": manifestClasspath
+    }
 }

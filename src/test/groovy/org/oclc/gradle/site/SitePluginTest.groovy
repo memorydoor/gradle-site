@@ -21,7 +21,7 @@ class SitePluginTest extends Specification{
         when:
         plugin.apply(project)
         then:
-        project.tasks.size() == 1
+        project.tasks.size() == 2
         project.tasks.getByName("site") != null
     }
 

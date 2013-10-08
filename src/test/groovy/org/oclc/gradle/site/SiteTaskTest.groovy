@@ -1,5 +1,7 @@
-package org.oclc.gradle.site; 
+package org.oclc.gradle.site
 
+import org.gradle.api.Project
+import org.gradle.testfixtures.ProjectBuilder;
 import spock.lang.Specification
 
 /**
@@ -11,9 +13,17 @@ import spock.lang.Specification
  */
 class SiteTaskTest extends Specification {
 
-    private final SiteTask siteTask = new SiteTask();
+    private final Project project = ProjectBuilder.builder().build()
+    private final SitePlugin plugin = new SitePlugin()
 
-    def ""(){
+    def "test that site deploy task"(){
+        when:
+        plugin.apply(project)
 
+        def task = (SiteTask) project.tasks.getByName("site")
+
+        task.generateSite()
+        then:
+        assert 1 == 1
     }
 }

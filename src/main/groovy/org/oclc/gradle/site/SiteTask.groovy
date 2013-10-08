@@ -31,6 +31,8 @@ class SiteTask extends DefaultTask {
     @OutputDirectory
     File outputDir = getProject().file("out/site")
 
+    File skinJar;
+
     @TaskAction
     def generateSite() {
         InputStream inputStream = null
@@ -83,6 +85,7 @@ class SiteTask extends DefaultTask {
 
         def projectName = project.name
 
+        decoration.name = projectName
         Banner bannerLeft = new Banner()
         bannerLeft.name = projectName
         decoration.bannerLeft = bannerLeft

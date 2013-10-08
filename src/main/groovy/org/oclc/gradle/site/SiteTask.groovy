@@ -15,6 +15,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.oclc.gradle.doxia.tools.SiteTool
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,7 +32,9 @@ class SiteTask extends DefaultTask {
     @OutputDirectory
     File outputDir = getProject().file("out/site")
 
-    File skinJar;
+    File skinJar
+
+    SiteTool siteTool = new SiteTool()
 
     @TaskAction
     def generateSite() {
@@ -82,6 +85,8 @@ class SiteTask extends DefaultTask {
 
         def reader = new DecorationXpp3Reader();
         DecorationModel decoration = reader.read(new FileReader(new File(inputDir, "site.xml")))
+
+        siteTool.populateModulesMenu(project, decoration)
 
         def projectName = project.name
 

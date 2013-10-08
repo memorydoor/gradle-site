@@ -20,7 +20,8 @@ dependencies{
     compile "org.apache.maven.doxia:doxia-module-xdoc:1.4"
 
     compile "org.apache.maven.wagon:wagon-provider-api:2.5"
-    compile "org.apache.maven:maven-compat:3.1.1"
+    //compile "org.apache.maven:maven-compat:3.1.1"
+    compile "org.apache.maven:maven-artifact-manager:2.2.1"
     compile "org.apache.maven.wagon:wagon-file:2.5"
 
 

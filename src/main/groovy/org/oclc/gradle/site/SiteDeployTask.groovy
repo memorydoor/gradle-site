@@ -18,6 +18,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.mvn3.org.apache.maven.plugin.MojoExecutionException
+import org.oclc.gradle.doxia.tools.SiteTool
 
 /**
  * Created with IntelliJ IDEA.
@@ -34,8 +35,14 @@ class SiteDeployTask extends DefaultTask {
     @Input
     String url = "file:C:/temp";
 
+    SiteTool siteTool = new SiteTool()
+
     @TaskAction
     def delopy() {
+        //site url
+        println "getDeployModuleDirectory:" + getDeployModuleDirectory()
+
+
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
         PlexusContainer container = new DefaultPlexusContainer();
 
@@ -45,7 +52,7 @@ class SiteDeployTask extends DefaultTask {
         final Wagon wagon =  getWagon( repository, wagonManager );
         final ProxyInfo proxyInfo
         final List<Locale> localesList
-        final String relativeDir = "."
+        final String relativeDir = getDeployModuleDirectory()
 
 
         AuthenticationInfo authenticationInfo = wagonManager.getAuthenticationInfo( repository.getId() );
@@ -134,11 +141,33 @@ class SiteDeployTask extends DefaultTask {
         return "";
     }
 
-    public void contextualize( Context context )
-    throws ContextException
-    {
-        println "contextualize"
-        container = (PlexusContainer) context.get( PlexusConstants.PLEXUS_KEY );
+    def String getDeployModuleDirectory() {
+        println "project.projectDir:" + project.projectDir
+        println "getRootModuleDirectory:" + getRootModuleDirectory()
+        String relative = siteTool.getRelativePath( project.projectDir.toString(), getRootModuleDirectory())
+
+        // SiteTool.getRelativePath() uses File.separatorChar,
+        // so we need to convert '\' to '/' in order for the URL to be valid for Windows users
+        relative = relative.replace( '\\', '/' );
+
+        return ( "".equals( relative ) ) ? "./" : relative;
     }
 
+    def String getRootModuleDirectory() {
+        def parent = project.parent
+
+        if (parent == null) {
+            return project.projectDir.toString()
+        }
+
+        def dir = parent.projectDir.toString()
+        while ( parent != null) {
+            parent = parent.parent
+            if (parent != null) {
+                dir = parent.projectDir.toString()
+            }
+        }
+        return dir
+
+    }
 }

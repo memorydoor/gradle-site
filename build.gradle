@@ -24,12 +24,12 @@ dependencies{
     compile "org.apache.maven:maven-artifact-manager:2.2.1"
     compile "org.apache.maven.wagon:wagon-file:2.5"
 
-
+    compile "commons-io:commons-io:1.4"
 
     compile gradleApi()
     compile localGroovy()
 
-	testCompile 'junit:junit:4.8.2', 'org.spockframework:spock-core:0.5-groovy-1.8@jar'
+	testCompile 'junit:junit:3.8.2', 'org.spockframework:spock-core:0.5-groovy-1.8@jar'
 }
 
 task wrapper(type: Wrapper) {

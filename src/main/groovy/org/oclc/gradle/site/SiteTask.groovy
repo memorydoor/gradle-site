@@ -1,10 +1,12 @@
 package org.oclc.gradle.site
 
+import org.apache.maven.doxia.sink.render.RenderingContext
 import org.apache.maven.doxia.site.decoration.Banner
 import org.apache.maven.doxia.site.decoration.DecorationModel
 import org.apache.maven.doxia.site.decoration.io.xpp3.DecorationXpp3Reader
 import org.apache.maven.doxia.siterenderer.Renderer
 import org.apache.maven.doxia.siterenderer.SiteRenderingContext
+import org.apache.maven.doxia.siterenderer.sink.SiteRendererSink
 import org.codehaus.plexus.ContainerConfiguration
 import org.codehaus.plexus.DefaultContainerConfiguration
 import org.codehaus.plexus.DefaultPlexusContainer
@@ -85,6 +87,7 @@ class SiteTask extends DefaultTask {
 
         def reader = new DecorationXpp3Reader();
         DecorationModel decoration = reader.read(new FileReader(new File(inputDir, "site.xml")))
+        println decoration.body
 
         siteTool.populateModulesMenu(project, decoration)
 
@@ -99,13 +102,26 @@ class SiteTask extends DefaultTask {
         final Map<String, String> templateProp = new HashMap<String, String>();
         templateProp.put( "outputEncoding", "UTF-8" );
         templateProp.put( "project", project)
-        SiteRenderingContext ctxt = renderer.createContextForSkin( new File(outputDir, "maven-default-skin-1.1.jar"), templateProp, decoration,
+        SiteRenderingContext siteRenderingContext = renderer.createContextForSkin( new File(outputDir, "maven-default-skin-1.1.jar"), templateProp, decoration,
                 projectName, Locale.getDefault())
-        ctxt.setUsingDefaultTemplate( true );
-        ctxt.addSiteDirectory( inputDir );
-        ctxt.setValidate( false );
+        siteRenderingContext.setUsingDefaultTemplate( true );
+        siteRenderingContext.addSiteDirectory( inputDir );
+        siteRenderingContext.setValidate( false );
 
-        renderer.render(renderer.locateDocumentFiles(ctxt).values(), ctxt, outputDir)
+        renderer.render(renderer.locateDocumentFiles(siteRenderingContext).values(), siteRenderingContext, outputDir)
+
+
+        //index.html
+        def writer = new OutputStreamWriter( new FileOutputStream( new File( outputDir, "index.html" ) ), "UTF-8" );
+        RenderingContext context = new RenderingContext( outputDir, "index.html" );
+        SiteRendererSink sink = new SiteRendererSink( context );
+
+        sink.body()
+        sink.text("this is the index page.")
+        sink.body_()
+
+
+        renderer.generateDocument( writer, sink, siteRenderingContext );
     }
 
 }

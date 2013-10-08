@@ -11,10 +11,9 @@ import org.codehaus.plexus.ContainerConfiguration
 import org.codehaus.plexus.DefaultContainerConfiguration
 import org.codehaus.plexus.DefaultPlexusContainer
 import org.codehaus.plexus.PlexusContainer
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.oclc.gradle.doxia.tools.SiteTool
@@ -31,6 +30,7 @@ class SiteTask extends DefaultTask {
     @InputDirectory
     File inputDir = getProject().file("src/site")
 
+    @Nested
     @OutputDirectory
     File outputDir = getProject().file("out/site")
 
@@ -40,6 +40,8 @@ class SiteTask extends DefaultTask {
 
     @TaskAction
     def generateSite() {
+        outputDir.mkdirs()
+
         InputStream inputStream = null
 
         OutputStream outputStream = null;

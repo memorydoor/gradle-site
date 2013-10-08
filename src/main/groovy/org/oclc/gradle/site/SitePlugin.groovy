@@ -16,5 +16,6 @@ class SitePlugin implements Plugin<Project> {
     void apply(Project project) {
         project.tasks.create("site", SiteTask.class)
         project.tasks.create("site-deploy", SiteDeployTask.class)
+        project.tasks.create("site-clean", SiteCleanTask.class)
     }
 }

@@ -10,8 +10,6 @@ import org.apache.maven.wagon.proxy.ProxyInfo
 import org.apache.maven.wagon.repository.Repository
 import org.codehaus.plexus.*
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException
-import org.codehaus.plexus.context.Context
-import org.codehaus.plexus.context.ContextException
 import org.codehaus.plexus.util.StringUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
@@ -30,10 +28,10 @@ import org.oclc.gradle.doxia.tools.SiteTool
 class SiteDeployTask extends DefaultTask {
 
     @InputDirectory
-    File inputDir = getProject().file("out/site")
+    File inputDirectory = getProject().file(SitePluginExtension.DEFAULT_OUTPUT_DIRECTORY)
 
     @Input
-    String url = "file:C:/temp";
+    String url
 
     SiteTool siteTool = new SiteTool()
 
@@ -82,7 +80,7 @@ class SiteDeployTask extends DefaultTask {
             wagon.connect( repository );
         }
 
-        wagon.putDirectory(inputDir, relativeDir)
+        wagon.putDirectory(inputDirectory, relativeDir)
     }
 
     private Wagon getWagon( final Repository repository, final WagonManager manager )

@@ -13,7 +13,6 @@ import org.codehaus.plexus.DefaultPlexusContainer
 import org.codehaus.plexus.PlexusContainer
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.oclc.gradle.doxia.tools.SiteTool
@@ -28,11 +27,10 @@ import org.oclc.gradle.doxia.tools.SiteTool
 class SiteTask extends DefaultTask {
 
     @InputDirectory
-    File inputDir = getProject().file("src/site")
+    File siteDirectory = getProject().file(SitePluginExtension.DEFAULT_SITE_DIRECTORY)
 
-    @Nested
     @OutputDirectory
-    File outputDir = getProject().file("out/site")
+    File outputDirectory = project.file(SitePluginExtension.DEFAULT_OUTPUT_DIRECTORY)
 
     File skinJar
 
@@ -40,7 +38,7 @@ class SiteTask extends DefaultTask {
 
     @TaskAction
     def generateSite() {
-        outputDir.mkdirs()
+        outputDirectory.mkdirs()
 
         InputStream inputStream = null
 
@@ -52,7 +50,7 @@ class SiteTask extends DefaultTask {
 
             // write the inputStream to a FileOutputStream
             outputStream =
-                new FileOutputStream(new File(outputDir, "maven-default-skin-1.1.jar"));
+                new FileOutputStream(new File(outputDirectory, "maven-default-skin-1.1.jar"));
 
             int read = 0;
             byte[] bytes = new byte[1024];
@@ -88,8 +86,7 @@ class SiteTask extends DefaultTask {
         Renderer renderer = container.lookup(Renderer.ROLE)
 
         def reader = new DecorationXpp3Reader();
-        DecorationModel decoration = reader.read(new FileReader(new File(inputDir, "site.xml")))
-        println decoration.body
+        DecorationModel decoration = reader.read(new FileReader(new File(siteDirectory, "site.xml")))
 
         siteTool.populateModulesMenu(project, decoration)
 
@@ -104,18 +101,18 @@ class SiteTask extends DefaultTask {
         final Map<String, String> templateProp = new HashMap<String, String>();
         templateProp.put( "outputEncoding", "UTF-8" );
         templateProp.put( "project", project)
-        SiteRenderingContext siteRenderingContext = renderer.createContextForSkin( new File(outputDir, "maven-default-skin-1.1.jar"), templateProp, decoration,
+        SiteRenderingContext siteRenderingContext = renderer.createContextForSkin( new File(outputDirectory, "maven-default-skin-1.1.jar"), templateProp, decoration,
                 projectName, Locale.getDefault())
         siteRenderingContext.setUsingDefaultTemplate( true );
-        siteRenderingContext.addSiteDirectory( inputDir );
+        siteRenderingContext.addSiteDirectory( siteDirectory );
         siteRenderingContext.setValidate( false );
 
-        renderer.render(renderer.locateDocumentFiles(siteRenderingContext).values(), siteRenderingContext, outputDir)
+        renderer.render(renderer.locateDocumentFiles(siteRenderingContext).values(), siteRenderingContext, outputDirectory)
 
 
         //index.html
-        def writer = new OutputStreamWriter( new FileOutputStream( new File( outputDir, "index.html" ) ), "UTF-8" );
-        RenderingContext context = new RenderingContext( outputDir, "index.html" );
+        def writer = new OutputStreamWriter( new FileOutputStream( new File( outputDirectory, "index.html" ) ), "UTF-8" );
+        RenderingContext context = new RenderingContext( outputDirectory, "index.html" );
         SiteRendererSink sink = new SiteRendererSink( context );
 
         sink.body()

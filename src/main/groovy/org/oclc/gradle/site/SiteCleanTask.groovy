@@ -15,12 +15,11 @@ import org.gradle.api.tasks.TaskAction
  */
 class SiteCleanTask extends DefaultTask{
 
-    @Nested
-    File outputDir = getProject().file("out/site")
+    File outputDirectory = project.file(SitePluginExtension.DEFAULT_OUTPUT_DIRECTORY)
 
     @TaskAction
     def clean() {
-        FileUtils.deleteDirectory(outputDir)
+        FileUtils.deleteDirectory(outputDirectory)
     }
 
 }

@@ -1,11 +1,19 @@
 package org.oclc.gradle.doxia.tools
 
 import org.apache.commons.io.FilenameUtils
+import org.apache.ivy.core.IvyContext
+import org.apache.ivy.core.module.descriptor.Artifact
+import org.apache.ivy.core.module.descriptor.DefaultArtifact
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.maven.doxia.site.decoration.DecorationModel
 import org.apache.maven.doxia.site.decoration.Menu
 import org.apache.maven.doxia.site.decoration.MenuItem
+import org.apache.maven.doxia.site.decoration.Skin
 import org.codehaus.plexus.i18n.I18N
 import org.gradle.api.Project
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,6 +25,34 @@ import org.gradle.api.Project
 class SiteTool {
 
     def I18N i18n
+
+    def getSkinJarFile(Skin skin, Project project) {
+        if (skin == null) {
+            skin = Skin.getDefaultSkin()
+        }
+
+        ModuleRevisionId revisionId = ModuleRevisionId.newInstance(skin.getGroupId(), skin.getArtifactId(), skin.getVersion());
+
+        Artifact artifact = DefaultArtifact.newPomArtifact(revisionId, new Date())
+        artifact = new DefaultArtifact(revisionId, new Date(), revisionId.getName(), "jar", "jar", false);
+
+        DefaultArtifactIdentifier artifactIdentifier = new DefaultArtifactIdentifier(artifact)
+
+        DefaultBuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult()
+
+
+        ResolutionAwareRepository repository =  project.repositories.mavenCentral()
+
+        def moduleVersionRepository = repository.createRealResolver();
+
+        moduleVersionRepository.setSettings(IvyContext.getContext().getSettings())
+
+
+        moduleVersionRepository.resolve(artifactIdentifier, resolveResult, null)
+
+        return resolveResult.getFile()
+
+    }
 
     def populateModulesMenu(Project project, DecorationModel decorationModel) {
         Menu menu = decorationModel.getMenuRef( "modules" );

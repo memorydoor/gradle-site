@@ -3,6 +3,7 @@ package org.oclc.gradle.site
 import org.apache.maven.doxia.sink.render.RenderingContext
 import org.apache.maven.doxia.site.decoration.Banner
 import org.apache.maven.doxia.site.decoration.DecorationModel
+import org.apache.maven.doxia.site.decoration.Skin
 import org.apache.maven.doxia.site.decoration.io.xpp3.DecorationXpp3Reader
 import org.apache.maven.doxia.siterenderer.Renderer
 import org.apache.maven.doxia.siterenderer.SiteRenderingContext
@@ -32,12 +33,13 @@ class SiteTask extends DefaultTask {
     @OutputDirectory
     File outputDirectory = project.file(SitePluginExtension.DEFAULT_OUTPUT_DIRECTORY)
 
-    File skinJar
+    Skin skin
 
     SiteTool siteTool = new SiteTool()
 
     @TaskAction
     def generateSite() {
+        logger.info("Starting to generate site for Project:" + project.name)
         outputDirectory.mkdirs()
 
         InputStream inputStream = null
@@ -52,7 +54,7 @@ class SiteTask extends DefaultTask {
             outputStream =
                 new FileOutputStream(new File(outputDirectory, "maven-default-skin-1.1.jar"));
 
-            int read = 0;
+            int read;
             byte[] bytes = new byte[1024];
 
             while ((read = inputStream.read(bytes)) != -1) {
@@ -83,7 +85,7 @@ class SiteTask extends DefaultTask {
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
         PlexusContainer container = new DefaultPlexusContainer(containerConfiguration);
 
-        Renderer renderer = container.lookup(Renderer.ROLE)
+        def renderer = (Renderer) container.lookup(Renderer.ROLE)
 
         def reader = new DecorationXpp3Reader();
         DecorationModel decoration = reader.read(new FileReader(new File(siteDirectory, "site.xml")))
@@ -98,14 +100,16 @@ class SiteTask extends DefaultTask {
         decoration.bannerLeft = bannerLeft
 
 
-        final Map<String, String> templateProp = new HashMap<String, String>();
+        final Map<String, Object> templateProp = new HashMap<String, Object>();
         templateProp.put( "outputEncoding", "UTF-8" );
         templateProp.put( "project", project)
-        SiteRenderingContext siteRenderingContext = renderer.createContextForSkin( new File(outputDirectory, "maven-default-skin-1.1.jar"), templateProp, decoration,
+
+        SiteRenderingContext siteRenderingContext = renderer.createContextForSkin( siteTool.getSkinJarFile(skin, project), templateProp, decoration,
                 projectName, Locale.getDefault())
         siteRenderingContext.setUsingDefaultTemplate( true );
         siteRenderingContext.addSiteDirectory( siteDirectory );
         siteRenderingContext.setValidate( false );
+
 
         renderer.render(renderer.locateDocumentFiles(siteRenderingContext).values(), siteRenderingContext, outputDirectory)
 
@@ -119,8 +123,9 @@ class SiteTask extends DefaultTask {
         sink.text("this is the index page.")
         sink.body_()
 
-
         renderer.generateDocument( writer, sink, siteRenderingContext );
+
+        logger.info("Finished to generate site for Project:" + project.name)
     }
 
 }

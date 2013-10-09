@@ -42,14 +42,13 @@ class SiteDeployTask extends DefaultTask {
 
 
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
-        PlexusContainer container = new DefaultPlexusContainer();
+        PlexusContainer container = new DefaultPlexusContainer(containerConfiguration);
 
         final wagonManager = container.lookup(WagonManager.ROLE)
         final Repository repository = new Repository("id", url)
 
         final Wagon wagon =  getWagon( repository, wagonManager );
         final ProxyInfo proxyInfo
-        final List<Locale> localesList
         final String relativeDir = getDeployModuleDirectory()
 
 

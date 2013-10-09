@@ -1,5 +1,6 @@
 package org.oclc.gradle.site
 
+import org.apache.maven.doxia.site.decoration.Skin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.Copy
@@ -23,6 +24,22 @@ class SitePlugin implements Plugin<Project> {
         project.tasks.create("site-clean", SiteCleanTask.class)
 
         project.afterEvaluate { p ->
+            def siteTask = project.tasks.findByName("site")
+
+
+
+            if (p.site.skin.artifactId != null && p.site.skin.groupId != null && p.site.skin.version != null) {
+                Skin skin = new Skin()
+                skin.setArtifactId(p.site.skin.artifactId)
+                skin.setGroupId(p.site.skin.groupId)
+                skin.setVersion(p.site.skin.version)
+
+                siteTask.skin = skin
+
+                println "1:" +  skin
+            }
+            println "2:"
+
             def siteDeploy = project.tasks.findByName("site-deploy")
             siteDeploy.url = p.site.url
 

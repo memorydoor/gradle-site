@@ -1,5 +1,7 @@
 package org.oclc.gradle.site
 
+import org.apache.maven.doxia.site.decoration.Skin
+
 /**
  * Created with IntelliJ IDEA.
  * User: chengy
@@ -15,4 +17,5 @@ class SitePluginExtension {
 
     String url
     String outputDirectory
+    Skin skin = new Skin()
 }

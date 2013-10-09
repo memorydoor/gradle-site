@@ -19,13 +19,11 @@ class SitePlugin implements Plugin<Project> {
         project.extensions.create("site", SitePluginExtension)
 
         project.tasks.create("site", SiteTask.class)
-        project.tasks.create("site-deploy", SiteDeployTask.class)
+        project.tasks.create("site-deploy", SiteDeployTask.class, {task -> task.dependsOn("site")})
         project.tasks.create("site-clean", SiteCleanTask.class)
 
-        project.tasks.findByName("site-deploy")
-
         project.afterEvaluate { p ->
-            def siteDeploy = p.tasks.findByName("site-deploy")
+            def siteDeploy = project.tasks.findByName("site-deploy")
             siteDeploy.url = p.site.url
 
             if (p.site.outputDirectory != null) {

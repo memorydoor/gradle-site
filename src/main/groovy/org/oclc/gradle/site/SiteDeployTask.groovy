@@ -37,10 +37,6 @@ class SiteDeployTask extends DefaultTask {
 
     @TaskAction
     def delopy() {
-        //site url
-        println "getDeployModuleDirectory:" + getDeployModuleDirectory()
-
-
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
         PlexusContainer container = new DefaultPlexusContainer(containerConfiguration);
 
@@ -93,20 +89,7 @@ class SiteDeployTask extends DefaultTask {
         }
         catch ( UnsupportedProtocolException e )
         {
-            /*String shortMessage =
-                "Unsupported protocol: '" + repository.getProtocol() + "' for site deployment to "
-            + "distributionManagement.site.url=" + repository.getUrl() + ".";
-            String longMessage =
-                "\n" + shortMessage + "\n" +
-                        "Currently supported protocols are: " + getSupportedProtocols() + ".\n"
-            + "    Protocols may be added through wagon providers.\n"
-            + "    For more information, see "
-            + "http://maven.apache.org/plugins/maven-site-plugin/examples/adding-deploy-protocol.html";
-
-            getLog().error( longMessage );*/
             e.printStackTrace()
-
-            //throw new MojoExecutionException( shortMessage );
         }
         catch ( TransferFailedException e )
         {
@@ -132,39 +115,16 @@ class SiteDeployTask extends DefaultTask {
         }
         catch ( ComponentLookupException e )
         {
-            // in the unexpected case there is a problem when instantiating a wagon provider
             getLog().error( e );
         }
         return "";
     }
 
     def String getDeployModuleDirectory() {
-        println "project.projectDir:" + project.projectDir
-        println "getRootModuleDirectory:" + getRootModuleDirectory()
-        String relative = siteTool.getRelativePath( project.projectDir.toString(), getRootModuleDirectory())
+        println "project.getRootProject():" + project.getRootProject()
 
-        // SiteTool.getRelativePath() uses File.separatorChar,
-        // so we need to convert '\' to '/' in order for the URL to be valid for Windows users
-        relative = relative.replace( '\\', '/' );
+        String relative = siteTool.getRelativePath( project.projectDir.toString(), project.rootDir.toString())
 
         return ( "".equals( relative ) ) ? "./" : relative;
-    }
-
-    def String getRootModuleDirectory() {
-        def parent = project.parent
-
-        if (parent == null) {
-            return project.projectDir.toString()
-        }
-
-        def dir = parent.projectDir.toString()
-        while ( parent != null) {
-            parent = parent.parent
-            if (parent != null) {
-                dir = parent.projectDir.toString()
-            }
-        }
-        return dir
-
     }
 }

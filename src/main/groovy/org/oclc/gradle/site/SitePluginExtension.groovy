@@ -10,7 +10,6 @@ import org.apache.maven.doxia.site.decoration.Skin
  * To change this template use File | Settings | File Templates.
  */
 class SitePluginExtension {
-    public static final String NAME = "site";
     public static final String DEFAULT_OUTPUT_DIRECTORY = "build/site"
     public static final String DEFAULT_SITE_DIRECTORY = "src/site"
 

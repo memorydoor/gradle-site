@@ -3,7 +3,6 @@ package org.oclc.gradle.site
 import org.apache.maven.doxia.site.decoration.Skin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.Copy
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,19 +13,30 @@ import org.gradle.api.tasks.Copy
  */
 class SitePlugin implements Plugin<Project> {
 
+    private static final String TASK_NAME_SITE_DEPLOY = "site-deploy"
+    private static final String TASK_NAME_SITE = "site"
+    private static final String TASK_NAME_SITE_CLEAN = "site-clean"
+    private static final String TASK_GROUP_NAME = "Site"
+
     @Override
     void apply(Project project) {
 
-        project.extensions.create("site", SitePluginExtension)
+        project.extensions.create(TASK_NAME_SITE, SitePluginExtension)
 
-        project.tasks.create("site", SiteTask.class)
-        project.tasks.create("site-deploy", SiteDeployTask.class, {task -> task.dependsOn("site")})
-        project.tasks.create("site-clean", SiteCleanTask.class)
+        def assignGroup = { task -> task.group = TASK_GROUP_NAME }
+        project.tasks.create(TASK_NAME_SITE, SiteTask.class, assignGroup)
+        project.tasks.create(TASK_NAME_SITE_DEPLOY, SiteDeployTask.class, assignGroup)
+        project.tasks.create(TASK_NAME_SITE_CLEAN, SiteCleanTask.class, assignGroup)
+
+        def siteTask = project.tasks.findByName(TASK_NAME_SITE)
+        def siteDeployTask = project.tasks.findByName(TASK_NAME_SITE_DEPLOY)
+        def siteCleanTask = project.tasks.findByName(TASK_NAME_SITE_CLEAN)
+
+        siteTask.description = "Generates site."
+        siteDeployTask.description = "Deploys the output of site task to 'site.url'."
+        siteCleanTask.description = "Cleans the output of site task."
 
         project.afterEvaluate { p ->
-            def siteTask = project.tasks.findByName("site")
-
-
 
             if (p.site.skin.artifactId != null && p.site.skin.groupId != null && p.site.skin.version != null) {
                 Skin skin = new Skin()
@@ -35,23 +45,23 @@ class SitePlugin implements Plugin<Project> {
                 skin.setVersion(p.site.skin.version)
 
                 siteTask.skin = skin
-
-                println "1:" +  skin
             }
-            println "2:"
 
-            def siteDeploy = project.tasks.findByName("site-deploy")
-            siteDeploy.url = p.site.url
+            siteDeployTask.url = p.site.url
 
             if (p.site.outputDirectory != null) {
                 def siteOutputDirectory = project.file(p.site.outputDirectory)
-                siteDeploy.inputDirectory = siteOutputDirectory
 
-                def siteTasks = p.tasks.findAll { it.name == 'site' || it.name == 'site-clean' }
-                siteTasks.each { task ->
-                    task.outputDirectory = siteOutputDirectory
-                }
+                siteDeployTask.inputDirectory = siteOutputDirectory
+
+                siteTask.outputDirectory = siteOutputDirectory
+                siteCleanTask.outputDirectory = siteOutputDirectory
             }
+
+            //rules for executing tasks
+            siteTask.onlyIf { siteTask.siteDirectory.exists() }
+            siteDeployTask.dependsOn(TASK_NAME_SITE)
+            siteDeployTask.onlyIf { siteDeployTask.inputDirectory.exists() }
         }
     }
 }

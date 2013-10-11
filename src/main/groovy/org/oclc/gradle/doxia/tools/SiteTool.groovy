@@ -11,6 +11,7 @@ import org.apache.maven.doxia.site.decoration.MenuItem
 import org.apache.maven.doxia.site.decoration.Skin
 import org.codehaus.plexus.i18n.I18N
 import org.gradle.api.Project
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
@@ -24,7 +25,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
  */
 class SiteTool {
 
-    def I18N i18n
+    I18N i18n
 
     def getSkinJarFile(Skin skin, Project project) {
         if (skin == null) {
@@ -33,15 +34,14 @@ class SiteTool {
 
         ModuleRevisionId revisionId = ModuleRevisionId.newInstance(skin.getGroupId(), skin.getArtifactId(), skin.getVersion());
 
-        Artifact artifact = DefaultArtifact.newPomArtifact(revisionId, new Date())
-        artifact = new DefaultArtifact(revisionId, new Date(), revisionId.getName(), "jar", "jar", false);
+        Artifact artifact = new DefaultArtifact(revisionId, new Date(), revisionId.getName(), "jar", "jar", false);
 
         DefaultArtifactIdentifier artifactIdentifier = new DefaultArtifactIdentifier(artifact)
 
         DefaultBuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult()
 
 
-        ResolutionAwareRepository repository =  project.repositories.mavenCentral()
+        MavenArtifactRepository repository =  project.repositories.mavenCentral()
 
         def moduleVersionRepository = repository.createRealResolver();
 
@@ -61,13 +61,12 @@ class SiteTool {
             return;
         }
 
-        //menu.name = i18n.getString("site-tool", Locale.default, "decorationModel.menu.projectmodules")
         menu.name = "Modules"
 
-        for (Project subproject : project.subprojects) {
+        for (Project subProject : project.subprojects) {
             MenuItem item = new MenuItem()
-            item.name = subproject.name
-            item.href = "./" + subproject.name + "/index.html"
+            item.name = subProject.name
+            item.href = "./" + subProject.name + "/index.html"
 
             menu.addItem(item)
         }
@@ -102,7 +101,7 @@ class SiteTool {
             }
             catch ( MalformedURLException e1 )
             {
-                println "Unable to load a URL for '" + to + "': " + e.getMessage()
+                e1.printStackTrace()
             }
         }
 

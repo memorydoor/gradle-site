@@ -2,6 +2,7 @@ package org.oclc.gradle.site
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -13,11 +14,11 @@ import org.gradle.api.tasks.TaskAction
  */
 class SiteCleanTask extends DefaultTask{
 
+    @Input
     File outputDirectory = project.file(SitePluginExtension.DEFAULT_OUTPUT_DIRECTORY)
 
     @TaskAction
     def clean() {
         FileUtils.deleteDirectory(outputDirectory)
     }
-
 }

@@ -18,9 +18,11 @@ dependencies{
     compile "org.apache.maven.doxia:doxia-module-apt:1.4"
     compile "org.apache.maven.doxia:doxia-module-xhtml:1.4"
     compile "org.apache.maven.doxia:doxia-module-xdoc:1.4"
+    compile "org.apache.maven.doxia:doxia-module-markdown:1.4"
+
+    compile "org.apache.maven.skins:maven-default-skin:1.1"
 
     compile "org.apache.maven.wagon:wagon-provider-api:2.5"
-    //compile "org.apache.maven:maven-compat:3.1.1"
     compile "org.apache.maven:maven-artifact-manager:2.2.1"
     compile "org.apache.maven.wagon:wagon-file:2.5"
 
@@ -28,8 +30,6 @@ dependencies{
 
     compile gradleApi()
     compile localGroovy()
-
-	testCompile 'junit:junit:3.8.2', 'org.spockframework:spock-core:0.5-groovy-1.8@jar'
 }
 
 task wrapper(type: Wrapper) {

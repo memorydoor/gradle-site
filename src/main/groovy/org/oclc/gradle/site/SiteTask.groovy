@@ -14,10 +14,10 @@ import org.codehaus.plexus.DefaultPlexusContainer
 import org.codehaus.plexus.PlexusContainer
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.oclc.gradle.doxia.tools.SiteTool
+import org.apache.commons.io.FileUtils
 
 /**
  * Created with IntelliJ IDEA.
@@ -40,7 +40,6 @@ class SiteTask extends DefaultTask {
 
     @TaskAction
     def generateSite() {
-
         logger.info("Starting to generate site for Project:" + project.name)
         outputDirectory.mkdirs()
 
@@ -48,53 +47,174 @@ class SiteTask extends DefaultTask {
         PlexusContainer container = new DefaultPlexusContainer(containerConfiguration);
 
         def renderer = (Renderer) container.lookup(Renderer.ROLE)
-        def projectRenderer = (Renderer) container.lookup(Renderer.ROLE, "project")
+        def projectName = project.name
 
+        DecorationModel siteDecoration = getDecorationModelFromSiteXml()
+        setupDecoration(siteDecoration, projectName)
 
+        final Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put( "outputEncoding", "UTF-8" );
+        attributes.put( "project", project)
 
+        File jarFile = siteTool.getSkinJarFileFromRepository(skin, project.repositories.mavenCentral())
+        SiteRenderingContext siteRenderingContext = renderer.createContextForSkin( jarFile, attributes, siteDecoration,
+                projectName, Locale.getDefault())
+        setupSiteRenderingContext(siteRenderingContext)
+
+        renderer.render(renderer.locateDocumentFiles(siteRenderingContext).values(), siteRenderingContext, outputDirectory)
+
+        //processing javadoc
+        File javaDocDirectory = new File(project.buildDir.absolutePath + "\\docs\\javadoc")
+        File javaDocOutputDirectory = new File(outputDirectory, "\\docs\\javadoc")
+
+        if (javaDocDirectory.exists()) {
+            FileUtils.copyDirectory(javaDocDirectory, javaDocOutputDirectory)
+        }
+
+        //processing docs under build/reports
+        File reportsDirectory = new File(project.buildDir.absolutePath + "\\reports")
+        File reportsOutputDirectory = new File(outputDirectory, "\\reports")
+
+        if (reportsDirectory.exists()) {
+            FileUtils.copyDirectory(reportsDirectory, reportsOutputDirectory)
+        }
+
+        generateReportsHtml(renderer, siteRenderingContext)
+
+        generateIndexHtml(renderer, siteRenderingContext)
+
+        logger.info("Finished to generate site for Project:" + project.name)
+    }
+
+    private void setupSiteRenderingContext(SiteRenderingContext siteRenderingContext) {
+        siteRenderingContext.setUsingDefaultTemplate(true);
+        siteRenderingContext.addSiteDirectory(siteDirectory);
+        siteRenderingContext.setValidate(false);
+    }
+
+    private DecorationModel getDecorationModelFromSiteXml() {
         def reader = new DecorationXpp3Reader();
         DecorationModel decoration = reader.read(new FileReader(new File(siteDirectory, "site.xml")))
+        decoration
+    }
 
+    private void setupDecoration(DecorationModel decoration, String projectName) {
         siteTool.populateModulesMenu(project, decoration)
+        siteTool.populateReportsMenu(decoration)
 
-        def projectName = project.name
 
         decoration.name = projectName
         Banner bannerLeft = new Banner()
         bannerLeft.name = projectName
         decoration.bannerLeft = bannerLeft
+    }
 
-
-        final Map<String, Object> templateProp = new HashMap<String, Object>();
-        templateProp.put( "outputEncoding", "UTF-8" );
-        templateProp.put( "project", project)
-
-        SiteRenderingContext siteRenderingContext = renderer.createContextForSkin( siteTool.getSkinJarFile(skin, project), templateProp, decoration,
-                projectName, Locale.getDefault())
-        siteRenderingContext.setUsingDefaultTemplate( true );
-        siteRenderingContext.addSiteDirectory( siteDirectory );
-        siteRenderingContext.setValidate( false );
-
-
-        renderer.render(renderer.locateDocumentFiles(siteRenderingContext).values(), siteRenderingContext, outputDirectory)
-
-        def files = projectRenderer.locateDocumentFiles(siteRenderingContext)
-        def filesValues = files.values()
-        println "files:" + files
-        println "files.values:" + filesValues
-
-        projectRenderer.render(filesValues, siteRenderingContext, outputDirectory)
-
-        //index.html
-        //this is temporary, will Need to extract into "project Info" module
-        /*
-        def writer = new OutputStreamWriter( new FileOutputStream( new File( outputDirectory, "index.html" ) ), "UTF-8" );
-        RenderingContext context = new RenderingContext( outputDirectory, "index.html" );
-        SiteRendererSink sink = new SiteRendererSink( context );
+    private void generateReportsHtml(Renderer renderer, SiteRenderingContext siteRenderingContext) {
+        def writer = new OutputStreamWriter(new FileOutputStream(new File(outputDirectory, "project-reports.html")), "UTF-8");
+        def context = new RenderingContext(outputDirectory, "project-reports.html");
+        def sink = new SiteRendererSink(context);
 
         sink.body()
         sink.sectionTitle1()
-        sink.text("About "  + project.name)
+        sink.text("Generated Reports")
+        sink.sectionTitle1_()
+
+        sink.paragraph()
+        sink.text("This document provides an overview of the various reports that are automatically generated by Gradle . Each report is briefly described below.")
+        sink.paragraph_()
+
+        sink.sectionTitle2()
+        sink.text("Overview")
+        sink.sectionTitle2_()
+
+        sink.table()
+
+        sink.tableRow()
+
+        sink.tableHeaderCell()
+        sink.text("Document")
+        sink.tableHeaderCell_()
+
+        sink.tableHeaderCell()
+        sink.text("Description")
+        sink.tableHeaderCell_()
+
+        sink.tableRow_()
+
+        // java doc
+        File javaDocIndexHtml = new File(outputDirectory.absolutePath + "/docs/javadoc/index.html" )
+        if (javaDocIndexHtml.exists()) {
+            sink.tableRow()
+
+            sink.tableCell()
+            sink.link("./docs/javadoc/index.html")
+            sink.text("JavaDocs")
+            sink.link_()
+            sink.tableCell_()
+
+            sink.tableCell()
+            sink.text("JavaDoc API documentation.")
+            sink.tableCell_()
+
+            sink.tableRow_()
+        }
+
+        File reportsDirectory = new File(outputDirectory, "reports")
+
+        File[] reports = reportsDirectory.listFiles()
+
+        List<String> htmlReports = new ArrayList<String>()
+        for (File report : reports) {
+            File indexHtml = new File(report, "index.html")
+            if (indexHtml.exists()) {
+                htmlReports.add("reports/" + report.getName() + "/index.html")
+                continue
+            }
+
+            File[] files = report.listFiles()
+
+            for (File file : files) {
+                if (file.name.endsWith(".html")) {
+                    htmlReports.add("reports/" + report.name + "/" + file.name)
+                }
+            }
+        }
+
+        if (htmlReports.size() > 0) {
+
+            for (String htmlReport : htmlReports ) {
+                sink.tableRow()
+
+                sink.tableCell()
+                sink.link("./" + htmlReport)
+                sink.text(htmlReport)
+                sink.link_()
+                sink.tableCell_()
+
+                sink.tableCell()
+                sink.text("")
+                sink.tableCell_()
+
+                sink.tableRow_()
+            }
+        }
+
+
+
+        sink.table_()
+
+        sink.body_()
+        renderer.generateDocument(writer, sink, siteRenderingContext);
+    }
+
+    private void generateIndexHtml(Renderer renderer, SiteRenderingContext siteRenderingContext) {
+        def writer = new OutputStreamWriter(new FileOutputStream(new File(outputDirectory, "index.html")), "UTF-8");
+        RenderingContext context = new RenderingContext(outputDirectory, "index.html");
+        SiteRendererSink sink = new SiteRendererSink(context);
+
+        sink.body()
+        sink.sectionTitle1()
+        sink.text("About " + project.name)
         sink.sectionTitle1_()
 
         sink.paragraph()
@@ -102,9 +222,7 @@ class SiteTask extends DefaultTask {
         sink.paragraph_()
         sink.body_()
 
-        renderer.generateDocument( writer, sink, siteRenderingContext );
-        */
-        logger.info("Finished to generate site for Project:" + project.name)
+        renderer.generateDocument(writer, sink, siteRenderingContext);
     }
 
 }

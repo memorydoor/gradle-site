@@ -60,8 +60,23 @@ class SitePlugin implements Plugin<Project> {
 
             //rules for executing tasks
             siteTask.onlyIf { siteTask.siteDirectory.exists() }
+
+            dependsOnIfExist("javadoc", project, siteTask)
+            dependsOnIfExist("test", project, siteTask)
+            dependsOnIfExist("pmdMain", project, siteTask)
+            dependsOnIfExist("pmdTest", project, siteTask)
+            dependsOnIfExist("findbugsMain", project, siteTask)
+            dependsOnIfExist("findbugsTest", project, siteTask)
+
             siteDeployTask.dependsOn(TASK_NAME_SITE)
             siteDeployTask.onlyIf { siteDeployTask.inputDirectory.exists() }
+        }
+    }
+
+    private void dependsOnIfExist(String taskName, def project, def siteTask) {
+        def javaDocTask = project.tasks.findByName(taskName)
+        if (javaDocTask != null) {
+            siteTask.dependsOn(javaDocTask)
         }
     }
 }

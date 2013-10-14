@@ -14,7 +14,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,7 +26,7 @@ class SiteTool {
 
     I18N i18n
 
-    def getSkinJarFile(Skin skin, Project project) {
+    def getSkinJarFileFromRepository(Skin skin, MavenArtifactRepository repositoryHandler) {
         if (skin == null) {
             skin = Skin.getDefaultSkin()
         }
@@ -40,10 +39,7 @@ class SiteTool {
 
         DefaultBuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult()
 
-
-        MavenArtifactRepository repository =  project.repositories.mavenCentral()
-
-        def moduleVersionRepository = repository.createRealResolver();
+        def moduleVersionRepository = repositoryHandler.createRealResolver();
 
         moduleVersionRepository.setSettings(IvyContext.getContext().getSettings())
 
@@ -72,6 +68,36 @@ class SiteTool {
         }
 
     }
+
+    /** {@inheritDoc} */
+    public void populateReportsMenu( DecorationModel decorationModel)
+    {
+        Menu menu = decorationModel.getMenuRef( "reports" );
+
+
+        if ( menu == null )
+        {
+            return;
+        }
+
+        menu.setName( "projectdocumentation" );
+
+        //javadoc
+        MenuItem item = createCategoryMenu( "Project Reports",
+                "/project-reports.html");
+        menu.addItem( item );
+    }
+
+    private MenuItem createCategoryMenu( String name, String href)
+    {
+        MenuItem item = new MenuItem();
+        item.setName( name );
+        item.setCollapse( true );
+        item.setHref( href );
+
+        return item;
+    }
+
 
     def getRelativePath(String to, String from) {
         if ( to == null )
@@ -157,11 +183,6 @@ class SiteTool {
         if ( relativePath == null )
         {
             relativePath = to;
-        }
-
-        if ( !relativePath.toString().equals( to ) )
-        {
-            println "Mapped url: " + to + " to relative path: " + relativePath
         }
 
         return relativePath;
